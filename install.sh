@@ -29,7 +29,7 @@ fi
 
 
 ## Asking for the number of Z-Wave bindings to install and check if the answer is valid
-echo -e "How many Z-wave bindings are you going to use? "
+echo -e "\nHow many Z-wave bindings are you going to use? "
 read n_bindings;
 re='^[0-9]+$'
 if ! [[ $n_bindings =~ $re ]]; then
@@ -38,6 +38,7 @@ if ! [[ $n_bindings =~ $re ]]; then
 fi
 
 if [[ $n_bindings -ge $min_n_bindings ]] && [[ $max_n_bindings -ge $n_bindings ]]; then
+        echo
 	read -p "Ok, you are about to install \"$n_bindings\" Z-Wave bindings. Are you sure? (y/N)? " choice
 	case "$choice" in 
 	  y|Y ) echo -e "\nStarting the installation process";;
@@ -105,12 +106,12 @@ done
 
 
 ## Deleting the old HABmin addon
-echo -e 'Deleting the old HABmin addon...'
+echo -e '\nDeleting the old HABmin addon...'
 rm $old_habmin_file
 
 
 ## Deleting the old Z-Wave bindings
-echo -e 'Deleting the old Z-Wave bindings...'
+echo -e '\nDeleting the old Z-Wave bindings...'
 for i in "${zwaves_to_delete[@]}"
 do
 	rm $i
@@ -118,12 +119,12 @@ done
 
 
 ## Adding the new HABmin addon
-echo -e 'Adding the new HABmin addon...'
+echo -e '\nAdding the new HABmin addon...'
 cp $new_habmin_file $addons_dir
 
 
 ## Adding the new Z-Wave bindings
-echo -e 'Adding the new Z-Wave bindings...'
+echo -e '\nAdding the new Z-Wave bindings...'
 for i in "${zwaves_to_install[@]}"
 do
 	cp $i $addons_dir
@@ -131,7 +132,7 @@ done
 
 
 ## Unziping and copying the HABmin folder
-echo -e "Unziping and copying the HABmin folder..."
+echo -e "\nUnziping and copying the HABmin folder..."
 cd habmin
 zip_file="habmin.zip"
 unzip $zip_file > /dev/null
@@ -141,6 +142,7 @@ cd ..
 
 
 ## Removing the git repository
+echo
 read -p "Do you want to remove the git repository from your computer (y/N)? " choice
 case "$choice" in 
   y|Y ) echo -e "Deleting the git repository..."; rm -rf /tmp/openhab-distributed-zwaves;;
