@@ -4,13 +4,17 @@
 addons_dir="/usr/share/openhab/addons"
 habmin_dir="/usr/share/openhab/webapps/habmin"
 webapps_dir="/usr/share/openhab/webapps"
+logs_dir="/var/log/openhab"
 slash="/"
+min_n_bindings=2
+max_n_bindings=8
 
 ## Make sure only root can run our script
 if [[ $EUID -ne 0 ]]; then
    echo -e "This script must be run as root" 1>&2
    exit 1
 fi
+
 
 ## Check if addons and habmin folders exist
 if [ ! -d "$addons_dir" ]; then
@@ -23,27 +27,29 @@ if [ ! -d "$habmin_dir" ]; then
 fi
 
 
-
 ## Ask for the number of Z-Wave bindings to install and check if the answer is valid
-re='^[0-9]+$'
 echo -e "How many Z-wave bindings are you going to use? "
 read n_bindings;
+re='^[0-9]+$'
 if ! [[ $n_bindings =~ $re ]]; then
 	echo -e "\nYou need to specify a number"
         exit
 fi
 
-if [[ $n_bindings -gt 1 ]] && [[ 9 -gt $n_bindings ]]; then
-	echo -e "\nOk, you are about to install \"$n_bindings\" Z-Wave bindings"
+if [[ $n_bindings -ge $min_n_bindings ]] && [[ $max_n_bindings -ge $n_bindings ]]; then
+	read -p "Ok, you are about to install \"$n_bindings\" Z-Wave bindings. Are you sure? (y/N)? " choice
+	case "$choice" in 
+	  y|Y ) echo -e "\nStarting the installation process";;
+	  * ) echo -e "\nInstallation aborted"; exit;;
+	esac
 else
-	echo -e "\nYou need to specify a number between 2 and 8"
+	echo -e "\nYou need to specify a number between $min_n_bindings and $max_n_bindings"
         exit
 fi
 
-
 ## Installing the required programs
 echo -e '\nInstalling the required programs...'
-apt-get --assume-yes install git unzip
+apt-get --assume-yes install git unzip >/dev/null
 
 
 ## Cloning the github repository
@@ -96,7 +102,7 @@ echo ${zwaves_to_install[@]}
 
 ## Get the old Z-Wave bindings files paths
 zwaves_to_delete=()
-for (( i=2; i<=$n_bindings; i++ ))
+for (( i=$min_n_bindings; i<=$max_n_bindings; i++ ))
 do
 	zwave_search="$search_start$i$search_end"
         zwave_file=$(find $addons_dir -name "$zwave_search")
@@ -110,26 +116,38 @@ echo ${zwaves_to_delete[@]}
 
 
 echo -e 'Deleting the old HABmin addon...'
-#rm $old_habmin_file
-
-echo -e 'Adding the new HABmin addon...'
-#cp $new_habmin_file $addons_dir
+rm $old_habmin_file
 
 echo -e 'Deleting the old Z-Wave bindings...'
+for i in "${zwaves_to_delete[@]}"
+do
+	rm $i
+done
 
+echo -e 'Adding the new HABmin addon...'
+cp $new_habmin_file $addons_dir
 
 echo -e 'Adding the new Z-Wave bindings...'
-
+for i in "${zwaves_to_install[@]}"
+do
+	cp $i $addons_dir
+done
 
 echo -e "Unziping and copying the HABmin folder..."
-echo $(pwd)
 cd habmin
-echo $(pwd)
-zip_file="habmin (unzip in the webapps folder).zip"
-unzip $zip_file
-cp habmin $webapps_dir
+zip_file="habmin.zip"
+unzip $zip_file >/dev/null
+cp -r habmin $webapps_dir
 rm -r habmin
 cd ..
 
 echo -e '\nRemoving the tmp folder...'
 #rm -rf /tmp/openhab-distributed-zwaves
+
+echo -e "\nRestarting openHAB..."
+read -p "Do you want to delete old openHAB log files (y/N)? " choice
+case "$choice" in 
+  y|Y ) echo -e "Deleting old log files..."; rm $logs_dir$slash$search_end;;
+  * ) echo -e "Keeping old log files";;
+esac
+/etc/init.d/openhab restart > /dev/null
