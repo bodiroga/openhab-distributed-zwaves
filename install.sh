@@ -143,7 +143,7 @@ cd ..
 ## Removing the git repository
 read -p "Do you want to remove the git repository from your computer (y/N)? " choice
 case "$choice" in 
-  y|Y ) echo -e "Deleting the git repository..."; rm -rf /tmp/openhab-distributed-zwavesd;;
+  y|Y ) echo -e "Deleting the git repository..."; rm -rf /tmp/openhab-distributed-zwaves;;
   * ) echo -e "Keeping the git repository...";;
 esac
 
