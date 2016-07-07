@@ -76,16 +76,10 @@ habmin_search="$search_start$n_bindings$search_end"
 
 new_habmin_file=$(find $current_folder$slash$habmin_word -name $habmin_search)
 
-echo -e "\n\nHABmin to install:"
-echo $new_habmin_file
-
 
 ## Getting the old HABmin file path
 habmin_search="*habmin*"
 old_habmin_file=$(find $addons_dir -name "$habmin_search")
-
-echo -e "\n\nHABmin to delete:"
-echo $old_habmin_file
 
 
 ## Getting the new Z-Wave bindings files paths
@@ -98,9 +92,6 @@ do
         zwaves_to_install+=($zwave_file)
 done
 
-echo -e "\n\nZWaves to install:"
-echo ${zwaves_to_install[@]}
-
 
 ## Getting the old Z-Wave bindings files paths
 search_start='*.zwave'
@@ -111,9 +102,6 @@ do
         zwave_file=$(find $addons_dir -name "$zwave_search")
         zwaves_to_delete+=($zwave_file)
 done
-
-echo -e "\n\nZWaves to delete:"
-echo ${zwaves_to_delete[@]}
 
 
 ## Deleting the old HABmin addon
@@ -169,4 +157,4 @@ case "$choice" in
 esac
 /etc/init.d/openhab restart > /dev/null
 
-echo -e "\Done."
+echo -e "\nDone."
